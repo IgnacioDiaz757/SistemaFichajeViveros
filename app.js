@@ -565,10 +565,11 @@ async function marcar(tipo) {
 
     const { data: uploadData, error: uploadError } = await db.storage
       .from("fotos")
-      .upload(nombre, fotoFile, { contentType: "image/jpeg", upsert: false });
+      .upload(nombre, fotoFile, { contentType: "image/jpeg", upsert: true });
 
     if (uploadError) {
-      mostrarMensaje("Error al subir la foto ✗", "error");
+      console.error("Upload error:", uploadError, { nombre, file: fotoFile });
+      mostrarMensaje(`Error al subir la foto: ${uploadError.message || uploadError.details || uploadError.code}`, "error");
       btnIngreso.disabled = false;
       btnSalida.disabled  = false;
       return;

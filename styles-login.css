@@ -25,7 +25,8 @@ body {
 
 /* ── Top: logo + título ────────────────────────────────── */
 .card-top {
-  background: #1e1e46;
+  background: linear-gradient(135deg, #1e1e46 0%, #2a0a20 100%);
+  border-bottom: 3px solid #e61d86;
   padding: 32px 28px 28px;
   display: flex;
   flex-direction: column;
@@ -86,9 +87,9 @@ input {
 }
 
 input:focus {
-  border-color: #1565c0;
+  border-color: #e61d86;
   background: #fff;
-  box-shadow: 0 0 0 3px rgba(21,101,192,0.12);
+  box-shadow: 0 0 0 3px rgba(230,29,134,0.14);
 }
 
 /* Wrapper para input password + ojo */
@@ -124,7 +125,7 @@ button[type="submit"] {
   width: 100%;
   padding: 15px;
   margin-top: 4px;
-  background: #2e7d32;
+  background: #e61d86;
   color: #fff;
   border: none;
   border-radius: 12px;
@@ -350,9 +351,9 @@ button[type="submit"]:active { transform: scale(0.98); }
     border-color: #cbd5e1;
   }
   input:focus {
-    border-color: #1565c0;
+    border-color: #e61d86;
     background: #fff;
-    box-shadow: 0 0 0 4px rgba(21,101,192,0.15);
+    box-shadow: 0 0 0 4px rgba(230,29,134,0.15);
   }
   .input-wrap input {
     padding-right: 48px;
@@ -369,11 +370,11 @@ button[type="submit"]:active { transform: scale(0.98); }
   .toggle-pass:active {
     transform: translateY(-50%) scale(0.95);
   }
-  button[type="submit"] { 
+  button[type="submit"] {
     width: 100%;
     padding: 16px 18px;
     margin-top: 8px;
-    background: #2e7d32;
+    background: #e61d86;
     color: #fff;
     border: none;
     border-radius: 12px;
@@ -384,9 +385,9 @@ button[type="submit"]:active { transform: scale(0.98); }
     transition: filter 0.15s, transform 0.1s, box-shadow 0.15s;
     -webkit-tap-highlight-color: transparent;
   }
-  button[type="submit"]:hover  { 
-    filter: brightness(1.12);
-    box-shadow: 0 8px 16px rgba(46,125,50,0.2);
+  button[type="submit"]:hover  {
+    filter: brightness(1.1);
+    box-shadow: 0 8px 16px rgba(230,29,134,0.3);
     transform: translateY(-2px);
   }
   button[type="submit"]:active { 
@@ -411,8 +412,8 @@ button[type="submit"]:active { transform: scale(0.98); }
     text-decoration: none;
     transition: color 0.2s;
   }
-  .volver:hover { 
-    color: #1565c0;
+  .volver:hover {
+    color: #e61d86;
   }
 }
 

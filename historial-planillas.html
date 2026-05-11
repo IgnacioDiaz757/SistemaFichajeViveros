@@ -375,7 +375,7 @@
 
   <header>
     <div class="header-brand">
-      <img src="public/images/Copia de Copia de Riveras del sur- Isologo colores.png" alt="Logo" style="height:38px;width:auto;object-fit:contain;border-radius:6px;">
+      <img src="public/images/ISOLOGOTIPOViverosUnidos.png" alt="Logo" style="height:38px;width:auto;object-fit:contain;border-radius:6px;">
       <div class="brand-text">
         <span class="brand-name">Historial de Planillas</span>
         <span class="brand-sub">Panel de administración</span>
@@ -449,7 +449,7 @@
   </div>
 
   <script>
-    if (sessionStorage.getItem("admin_auth") !== "ok") window.location.replace("login.html");
+    // La verificación de sesión real se hace en historial-planillas.js después de cargar Supabase
     function toggleTema() {
       const html = document.documentElement;
       const isDark = html.getAttribute("data-theme") === "dark";

@@ -4,10 +4,10 @@
 const fs   = require("fs");
 const path = require("path");
 
-const SUPABASE_URL   = process.env.SUPABASE_URL   || "";
-const SUPABASE_KEY   = process.env.SUPABASE_KEY   || "";
+const SUPABASE_URL   = process.env.SUPABASE_URL   || "https://rpfhymynhjukskethaxp.supabase.co";
+const SUPABASE_KEY   = process.env.SUPABASE_KEY   || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJwZmh5bXluaGp1a3NrZXRoYXhwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgyNjA3MDQsImV4cCI6MjA5MzgzNjcwNH0.YapRSDJzxPQgrQauRMLjdDlUpi_VLby7SH-vCWLTpG8";
 const ADMIN_USER     = process.env.ADMIN_USER     || "admin";
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "";
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "123456";
 
 if (!SUPABASE_URL || !SUPABASE_KEY) {
   console.error("ERROR: Las variables SUPABASE_URL y SUPABASE_KEY son obligatorias en Vercel.");
@@ -22,6 +22,8 @@ const DIST    = path.join(__dirname, "dist");
 const EXCLUIR = new Set([".env", ".git", "node_modules", "dist", "build.js",
                           "package.json", "package-lock.json", ".env.example",
                           ".gitignore", "config.js"]);
+
+if (fs.existsSync(DIST)) fs.rmSync(DIST, { recursive: true, force: true });
 
 function copiarDir(src, dest) {
   if (!fs.existsSync(dest)) fs.mkdirSync(dest, { recursive: true });

@@ -556,7 +556,7 @@ async function generarPlanilla() {
     // Descargar localmente (siempre)
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
-    a.download = `Planilla_${nombreEmp.replace(/\s+/g,"_")}_${MESES_ES_PL[mes-1]}_${anio}.xlsx`;
+    a.download = `Planilla Horarios Viveros Unidos - ${nombreEmp} - ${MESES_ES_PL[mes-1]} ${anio}.xlsx`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -581,8 +581,10 @@ async function generarPlanilla() {
         if (r.ok) meses = await r.json();
       } catch { /* primera vez, empieza vacío */ }
       if (!meses.includes(mesKey)) meses.push(mesKey);
-      const metaBlob = new Blob([JSON.stringify(meses)], { type: "application/json" });
-      await db.storage.from("planillas").upload(metaFn, metaBlob, { upsert: true });
+      const metaJsonStr = JSON.stringify(meses);
+      const metaEncoder = new TextEncoder();
+      const metaData = metaEncoder.encode(metaJsonStr);
+      await db.storage.from("planillas").upload(metaFn, metaData, { upsert: true });
       estado.textContent = "✓ Descargada y guardada en historial";
     } catch { /* silencioso — historial es opcional */ }
 
@@ -956,12 +958,12 @@ async function generarPlanillaEjemplo() {
     registros.push({
       tipo:  "ingreso",
       hora:  new Date(anio, mes - 1, d, h.e[0], h.e[1], 0).toISOString(),
-      lugar: "RIVERAS DEL SUQUIA",
+      lugar: "VIVEROS UNIDOS",
     });
     registros.push({
       tipo:  "salida",
       hora:  new Date(anio, mes - 1, d, h.s[0], h.s[1], 0).toISOString(),
-      lugar: "RIVERAS DEL SUQUIA",
+      lugar: "VIVEROS UNIDOS",
     });
   }
 
@@ -971,14 +973,14 @@ async function generarPlanillaEjemplo() {
     const ab = await res.arrayBuffer();
 
     const cambios = construirCambios(
-      "EMPLEADO EJEMPLO", "OPERARIO", "RIVERAS DEL SUQUIA",
+      "EMPLEADO EJEMPLO", "OPERARIO", "VIVEROS UNIDOS",
       "", registros, mes, anio
     );
     const blob = await aplicarCambiosAPlantilla(ab, cambios);
 
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
-    a.download = `Planilla_EJEMPLO_${MESES_ES_PL[mes - 1]}_${anio}.xlsx`;
+    a.download = `Planilla Horarios Viveros Unidos - EJEMPLO - ${MESES_ES_PL[mes - 1]} ${anio}.xlsx`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);

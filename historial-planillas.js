@@ -28,6 +28,9 @@ const DIAS_ES  = ["Dom","Lun","Mar","Mié","Jue","Vie","Sáb"];
 
 // ── Init ──────────────────────────────────────────────────
 (async function init() {
+  const { data: { session } } = await db.auth.getSession();
+  if (!session) { window.location.replace("login.html"); return; }
+
   await Promise.all([cargarEmpleados(), cargarCatalogos()]);
 })();
 
@@ -991,9 +994,11 @@ async function cargarMetaEmpleado(nombreEmpleado) {
 }
 
 async function guardarMetaEmpleado(nombreEmpleado, meses) {
-  const blob = new Blob([JSON.stringify(meses)], { type: "application/json" });
+  const jsonStr = JSON.stringify(meses);
+  const encoder = new TextEncoder();
+  const data = encoder.encode(jsonStr);
   const { error } = await db.storage.from("planillas")
-    .upload(metaFileName(nombreEmpleado), blob, { upsert: true });
+    .upload(metaFileName(nombreEmpleado), data, { upsert: true });
   return error;
 }
 
@@ -1012,7 +1017,7 @@ function sanitizarNombre(nombre) {
 }
 
 // ── Sesión ────────────────────────────────────────────────
-function cerrarSesion() {
-  sessionStorage.removeItem("admin_auth");
+async function cerrarSesion() {
+  await db.auth.signOut();
   window.location.href = "login.html";
 }
