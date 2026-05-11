@@ -316,6 +316,14 @@ async function cargarContratistas() {
 
 // ── Init ──────────────────────────────────────────────────
 
-cargarObras();
-cargarContratistas();
+(async () => {
+  const { data: { session } } = await db.auth.getSession();
+  if (!session) {
+    window.location.replace("login.html");
+    return;
+  }
+
+  cargarObras();
+  cargarContratistas();
+})();
 cargarEmpleados();
