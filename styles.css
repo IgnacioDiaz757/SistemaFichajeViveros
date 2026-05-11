@@ -1,0 +1,979 @@
+/* ── Variables de tema ─────────────────────────────────── */
+:root {
+  --bg:          #eef0f4;
+  --card:        #ffffff;
+  --shadow:      0 4px 24px rgba(0,0,0,0.10);
+  --text:        #222222;
+  --muted:       #888888;
+  --label:       #999999;
+  --placeholder: #aaaaaa;
+  --border:      #e0e0e0;
+  --border-foto: #d0d0d0;
+  --input-bg:    #fafafa;
+  --input-focus: #ffffff;
+  --hora-bg:     #1a1a2e;
+  --btn-float:   rgba(255,255,255,0.85);
+  --btn-float-shadow: rgba(0,0,0,0.15);
+  --select-arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23999' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+}
+
+[data-theme="dark"] {
+  --bg:          #0e1117;
+  --card:        #1a1f2e;
+  --shadow:      0 4px 24px rgba(0,0,0,0.40);
+  --text:        #e8e8f0;
+  --muted:       #9ca3af;
+  --label:       #6b7280;
+  --placeholder: #4b5563;
+  --border:      #2d3748;
+  --border-foto: #2d3748;
+  --input-bg:    #111827;
+  --input-focus: #1a1f2e;
+  --hora-bg:     #080b12;
+  --btn-float:   rgba(26,31,46,0.92);
+  --btn-float-shadow: rgba(0,0,0,0.40);
+  --select-arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236b7280' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px 16px;
+  transition: background 0.2s, color 0.2s;
+}
+
+.card {
+  background: var(--card);
+  border-radius: 20px;
+  padding: 32px 24px 28px;
+  width: 100%;
+  max-width: 420px;
+  box-shadow: var(--shadow);
+  transition: background 0.2s, box-shadow 0.2s;
+}
+
+.logo {
+  display: block;
+  max-width: 160px;
+  margin: 0 auto 8px;
+}
+
+.titulo {
+  text-align: center;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--muted);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  margin-bottom: 28px;
+}
+
+.campo { margin-bottom: 16px; }
+
+label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--label);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+
+input[type="text"] {
+  width: 100%;
+  padding: 13px 14px;
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  font-size: 16px;
+  color: var(--text);
+  background: var(--input-bg);
+  outline: none;
+  transition: border-color 0.15s, background 0.15s;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+input[type="text"]:focus { border-color: #00ff00; background: var(--input-focus); }
+
+select {
+  width: 100%;
+  padding: 13px 14px;
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  font-size: 16px;
+  color: var(--text);
+  background: var(--input-bg);
+  outline: none;
+  transition: border-color 0.15s, background 0.15s;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: var(--select-arrow);
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  padding-right: 36px;
+  cursor: pointer;
+}
+
+select:focus { border-color: #00ff00; background-color: var(--input-focus); }
+
+/* Área de foto */
+.foto-area {
+  width: 100%;
+  border: 2px dashed var(--border-foto);
+  border-radius: 12px;
+  overflow: hidden;
+  cursor: pointer;
+  background: var(--input-bg);
+  -webkit-tap-highlight-color: transparent;
+  transition: border-color 0.15s;
+  position: relative; /* necesario para los overlays */
+}
+
+.foto-area:active { border-color: #1a1a2e; }
+
+/* ── Scanner de reconocimiento ────────────────────────── */
+#scanner-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  overflow: hidden;
+  background: rgba(0,0,0,0.18);
+}
+
+.scanner-line {
+  position: absolute;
+  top: 0;
+  left: 0; right: 0;
+  height: 3px;
+  background: linear-gradient(90deg,
+    transparent 0%,
+    rgba(0,230,118,0.6) 15%,
+    #00e676 40%,
+    #69f0ae 50%,
+    #00e676 60%,
+    rgba(0,230,118,0.6) 85%,
+    transparent 100%
+  );
+  box-shadow: 0 0 14px #00e676, 0 0 32px rgba(0,230,118,0.35);
+  will-change: transform, opacity;
+  animation: scanLine 3s ease-in-out infinite;
+}
+
+@keyframes scanLine {
+  0%   { transform: translateY(0);     opacity: 0; }
+  5%   { transform: translateY(0);     opacity: 1; }
+  95%  { transform: translateY(600px); opacity: 1; }
+  100% { transform: translateY(600px); opacity: 0; }
+}
+
+.scanner-corner {
+  position: absolute;
+  width: 20px; height: 20px;
+  border-color: #00e676;
+  border-style: solid;
+}
+.scanner-corner.tl { top: 8px;  left: 8px;  border-width: 2px 0 0 2px; }
+.scanner-corner.tr { top: 8px;  right: 8px; border-width: 2px 2px 0 0; }
+.scanner-corner.bl { bottom: 8px; left: 8px;  border-width: 0 0 2px 2px; }
+.scanner-corner.br { bottom: 8px; right: 8px; border-width: 0 2px 2px 0; }
+
+.scanner-texto {
+  position: absolute;
+  bottom: 10px; left: 0; right: 0;
+  text-align: center;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #00e676;
+  text-shadow: 0 0 8px rgba(0,230,118,0.8);
+  animation: pulseText 1.2s ease-in-out infinite;
+}
+
+@keyframes pulseText {
+  0%, 100% { opacity: 0.7; }
+  50%       { opacity: 1;   }
+}
+
+/* Resultado del escaneo */
+#scanner-result {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.72);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  z-index: 3;
+  pointer-events: none;
+  animation: fadeInResult 0.3s ease forwards;
+}
+
+@keyframes fadeInResult {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.scanner-icono {
+  width: 54px; height: 54px;
+  border-radius: 50%;
+  background: #00e676;
+  color: #000;
+  font-size: 28px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 8px;
+  animation: popIn 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes popIn {
+  from { transform: scale(0); }
+  to   { transform: scale(1); }
+}
+
+.scanner-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.6);
+}
+
+.scanner-nombre-result {
+  font-size: 20px;
+  font-weight: 700;
+  color: #fff;
+  text-align: center;
+  padding: 0 12px;
+  white-space: pre-line;
+  line-height: 1.4;
+}
+
+.scanner-cambiar {
+  position: absolute;
+  bottom: 10px;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.35);
+}
+
+/* Estado error (cara no registrada) */
+#scanner-result.scanner-result-error .scanner-icono {
+  background: #e53935;
+  color: #fff;
+}
+
+#scanner-result.scanner-result-error .scanner-nombre-result {
+  color: #ff8a80;
+  font-size: 16px;
+}
+
+#scanner-result.scanner-result-error .scanner-label {
+  color: rgba(255,255,255,0.5);
+}
+
+/* Campos bloqueados tras reconocimiento exitoso */
+#empleado:disabled,
+#lugar:disabled {
+  opacity: 1;
+  cursor: default;
+  border-color: #00e676 !important;
+  color: var(--text);
+  background: var(--input-bg);
+}
+
+.foto-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 28px 16px;
+  color: var(--placeholder);
+}
+
+.foto-placeholder .icono { font-size: 32px; }
+.foto-placeholder span   { font-size: 13px; font-weight: 600; }
+
+#foto-preview {
+  display: none;
+  width: 100%;
+  max-height: 220px;
+  object-fit: cover;
+}
+
+.foto-cambiar {
+  display: none;
+  width: 100%;
+  padding: 8px;
+  background: rgba(0,0,0,0.55);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  text-align: center;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+}
+
+/* Modal cámara */
+#camara-modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: #000;
+  z-index: 999;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+#camara-video {
+  flex: 1;
+  min-height: 0;   /* evita que el video empuje la barra fuera de pantalla */
+  width: 100%;
+  object-fit: cover;
+}
+
+.camara-bar {
+  flex-shrink: 0;  /* la barra nunca se comprime */
+  background: #111;
+  padding: 16px 32px 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+/* En tablet y desktop, centrar y limitar ancho de la cámara */
+@media (min-width: 768px) {
+  #camara-modal {
+    align-items: center;
+    justify-content: center;
+    background: rgba(0,0,0,0.92);
+  }
+  #camara-video {
+    max-width: 720px;
+    max-height: calc(100vh - 160px);
+    border-radius: 12px 12px 0 0;
+  }
+  .camara-bar {
+    width: 100%;
+    max-width: 720px;
+    border-radius: 0 0 12px 12px;
+    padding: 16px 48px 24px;
+  }
+}
+
+.btn-camara-cancel {
+  background: none;
+  border: 2px solid rgba(255,255,255,0.4);
+  color: #fff;
+  border-radius: 50px;
+  padding: 10px 20px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+@media (max-width: 480px) {
+  .btn-camara-cancel {
+    font-size: 12px;
+    padding: 8px 16px;
+  }
+}
+
+/* Botón capturar — estilo doble anillo nativo */
+.btn-capturar {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: #fff;
+  border: 4px solid transparent;
+  box-shadow: 0 0 0 3px rgba(255,255,255,0.85);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 0.12s, box-shadow 0.12s;
+  flex-shrink: 0;
+}
+
+.btn-capturar:active {
+  transform: scale(0.87);
+  box-shadow: 0 0 0 3px rgba(255,255,255,0.45);
+}
+
+/* Botón flip cámara */
+.btn-flip {
+  background: rgba(255,255,255,0.18);
+  border: none;
+  border-radius: 50%;
+  width: 48px;
+  height: 48px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s, transform 0.35s;
+  flex-shrink: 0;
+}
+
+.btn-flip:active {
+  background: rgba(255,255,255,0.32);
+  transform: rotate(180deg);
+}
+
+.btn-flip svg {
+  width: 26px;
+  height: 26px;
+}
+
+/* Hora */
+.hora-box {
+  background: var(--hora-bg);
+  border-radius: 10px;
+  padding: 12px 16px;
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.hora-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.5);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.hora-valor {
+  font-size: 22px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.botones { display: flex; gap: 12px; margin-bottom: 4px; }
+
+button {
+  flex: 1;
+  padding: 16px 10px;
+  border: none;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.1s, opacity 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+button:active   { transform: scale(0.97); }
+button:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+
+#btn-ingreso { background: #2e7d32; color: #fff; }
+#btn-salida  { background: #c62828; color: #fff; }
+
+#btn-ingreso.btn-seleccionado { box-shadow: 0 0 0 3px #fff, 0 0 0 5px #2e7d32; }
+#btn-salida.btn-seleccionado  { box-shadow: 0 0 0 3px #fff, 0 0 0 5px #c62828; }
+
+#btn-confirmar {
+  width: 100%;
+  margin-top: 10px;
+  padding: 16px;
+  background: #1565c0;
+  color: #fff;
+  font-size: 17px;
+  font-weight: 700;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+#btn-confirmar:active { transform: scale(0.97); }
+
+#mensaje {
+  margin-top: 18px;
+  text-align: center;
+  font-size: 14px;
+  min-height: 20px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+#mensaje.ok    { color: #2e7d32; font-weight: 700; }
+#mensaje.error { color: #c62828; font-weight: 700; }
+
+#ubicacion { display: none; }
+
+/* Botones flotantes (candado + tema) */
+.btn-admin,
+.btn-tema {
+  position: fixed;
+  top: 14px;
+  background: var(--btn-float);
+  border: none;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  font-size: 16px;
+  cursor: pointer;
+  box-shadow: 0 1px 6px var(--btn-float-shadow);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 0.2s;
+}
+
+.btn-admin { right: 16px; }
+.btn-tema  { left: 16px; }
+
+@media (max-width: 360px) {
+  .card { padding: 24px 16px 22px; }
+  .hora-valor { font-size: 19px; }
+  button { font-size: 14px; padding: 15px 8px; }
+}
+
+/* ── Media Queries Responsive ──────────────────────────── */
+
+/* Móvil pequeño (< 360px) */
+@media (max-width: 359px) {
+  body { padding: 16px 12px; }
+  .card { 
+    padding: 20px 12px 16px;
+    border-radius: 16px;
+    max-width: 100%;
+  }
+  .logo { max-width: 120px; }
+  .titulo { font-size: 13px; margin-bottom: 20px; }
+  .campo { margin-bottom: 12px; }
+  label { font-size: 10px; margin-bottom: 4px; }
+  input[type="text"], select { 
+    padding: 11px 12px;
+    font-size: 15px;
+  }
+  .foto-placeholder .icono { font-size: 28px; }
+  .foto-placeholder span { font-size: 12px; }
+  .btn-admin, .btn-tema { 
+    top: 12px;
+    width: 32px;
+    height: 32px;
+    font-size: 14px;
+  }
+  .hora-box { 
+    padding: 10px 12px;
+    margin-bottom: 16px;
+  }
+  .hora-valor { font-size: 18px; }
+  button { 
+    font-size: 13px;
+    padding: 13px 8px;
+  }
+  .gps-card {
+    padding: 24px 16px 20px;
+    border-radius: 16px;
+  }
+}
+
+/* Móvil estándar (360px - 640px) */
+@media (min-width: 360px) and (max-width: 639px) {
+  body { padding: 20px 16px; }
+  .card { 
+    padding: 28px 20px 24px;
+    max-width: 100%;
+  }
+  .logo { max-width: 140px; }
+  input[type="text"], select { font-size: 16px; }
+  #foto-preview { max-height: 180px; }
+}
+
+/* Tablet (640px - 1024px) */
+@media (min-width: 640px) and (max-width: 1023px) {
+  body { padding: 32px 24px; }
+  .card { 
+    padding: 40px 32px 36px;
+    max-width: 540px;
+  }
+  .logo { max-width: 180px; }
+  .titulo { 
+    font-size: 16px;
+    margin-bottom: 32px;
+  }
+  .campo { margin-bottom: 20px; }
+  input[type="text"], select { 
+    padding: 15px 16px;
+    font-size: 16px;
+  }
+  #foto-preview { max-height: 260px; }
+  .foto-placeholder { padding: 40px 24px; }
+  .foto-placeholder .icono { font-size: 40px; }
+  .foto-placeholder span { font-size: 15px; }
+  .hora-box { padding: 16px 20px; }
+  .hora-valor { font-size: 26px; }
+  button { 
+    padding: 18px 12px;
+    font-size: 16px;
+  }
+  .btn-admin, .btn-tema { 
+    top: 20px;
+    width: 44px;
+    height: 44px;
+    font-size: 18px;
+  }
+  .gps-card {
+    padding: 40px 32px 32px;
+    max-width: 420px;
+  }
+}
+
+/* Desktop (> 1024px) */
+@media (min-width: 1024px) {
+  body { 
+    padding: 40px 32px;
+    min-height: 100vh;
+  }
+  .card { 
+    padding: 48px 40px 44px;
+    max-width: 520px;
+  }
+  .logo { 
+    max-width: 200px;
+    margin-bottom: 12px;
+  }
+  .titulo { 
+    font-size: 17px;
+    margin-bottom: 36px;
+  }
+  .campo { margin-bottom: 24px; }
+  label { 
+    font-size: 13px;
+    margin-bottom: 8px;
+  }
+  input[type="text"], select { 
+    padding: 16px 18px;
+    font-size: 16px;
+    border-radius: 12px;
+  }
+  input[type="text"]:focus { 
+    border-color: #1a1a2e;
+    box-shadow: 0 0 0 3px rgba(26,26,46,0.1);
+  }
+  select:focus { 
+    border-color: #1a1a2e;
+    box-shadow: 0 0 0 3px rgba(26,26,46,0.1);
+  }
+  .foto-area {
+    border-radius: 16px;
+    cursor: pointer;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .foto-area:hover { 
+    border-color: #1a1a2e;
+    box-shadow: 0 0 0 3px rgba(26,26,46,0.05);
+  }
+  #foto-preview { max-height: 300px; }
+  .foto-placeholder { 
+    padding: 48px 32px;
+    gap: 8px;
+  }
+  .foto-placeholder .icono { font-size: 48px; }
+  .foto-placeholder span { 
+    font-size: 16px;
+    font-weight: 500;
+  }
+  .hora-box { 
+    padding: 18px 24px;
+    margin-bottom: 32px;
+    border-radius: 12px;
+  }
+  .hora-label { font-size: 13px; }
+  .hora-valor { 
+    font-size: 28px;
+    font-weight: 700;
+  }
+  button { 
+    padding: 18px 16px;
+    font-size: 16px;
+    border-radius: 14px;
+    transition: transform 0.15s, filter 0.15s;
+  }
+  button:hover:not(:disabled) { 
+    filter: brightness(1.08);
+    transform: translateY(-2px);
+  }
+  button:active:not(:disabled) { 
+    transform: translateY(0) scale(0.98);
+  }
+  #mensaje { 
+    font-size: 15px;
+    margin-top: 20px;
+  }
+  .btn-admin, .btn-tema { 
+    top: 24px;
+    width: 48px;
+    height: 48px;
+    font-size: 20px;
+    box-shadow: 0 2px 12px var(--btn-float-shadow);
+    transition: background 0.2s, box-shadow 0.2s;
+  }
+  .btn-admin:hover, .btn-tema:hover {
+    box-shadow: 0 4px 16px var(--btn-float-shadow);
+  }
+  .gps-card {
+    padding: 44px 40px 36px;
+    max-width: 460px;
+    border-radius: 24px;
+  }
+  .gps-icono { font-size: 56px; }
+  .gps-titulo { font-size: 22px; }
+  .gps-texto { 
+    font-size: 15px;
+    margin-bottom: 28px;
+  }
+  .gps-btn-permitir { 
+    padding: 16px;
+    font-size: 16px;
+  }
+  .gps-pasos {
+    text-align: left;
+    font-size: 14px;
+    margin-bottom: 24px;
+  }
+}
+
+/* ── Modal permiso GPS ───────────────────────────────────── */
+.gps-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.65);
+  z-index: 2000;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(6px);
+  padding: 20px;
+}
+.gps-overlay.visible { display: flex; }
+
+.gps-card {
+  background: var(--card);
+  border-radius: 20px;
+  padding: 36px 28px 28px;
+  max-width: 360px;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+  animation: gps-in 0.25s ease;
+}
+
+@keyframes gps-in {
+  from { opacity: 0; transform: scale(0.92) translateY(10px); }
+  to   { opacity: 1; transform: scale(1)    translateY(0); }
+}
+
+.gps-icono {
+  font-size: 52px;
+  margin-bottom: 16px;
+  line-height: 1;
+}
+
+.gps-titulo {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 12px;
+}
+
+.gps-texto {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.6;
+  margin-bottom: 24px;
+}
+
+.gps-btn-permitir {
+  width: 100%;
+  padding: 14px;
+  background: #2e7d32;
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: filter 0.15s, transform 0.1s;
+  margin-bottom: 10px;
+}
+.gps-btn-permitir:hover  { filter: brightness(1.1); }
+.gps-btn-permitir:active { transform: scale(0.97); }
+.gps-btn-permitir:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+.gps-estado {
+  font-size: 13px;
+  min-height: 18px;
+  margin-bottom: 8px;
+  color: var(--muted);
+}
+.gps-estado.error { color: #c62828; }
+.gps-estado.ok    { color: #2e7d32; }
+
+.gps-btn-omitir {
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-size: 13px;
+  cursor: pointer;
+  text-decoration: underline;
+  padding: 6px;
+}
+.gps-btn-omitir:hover { color: var(--text); }
+
+.gps-pasos {
+  text-align: left;
+  padding-left: 20px;
+  margin-bottom: 22px;
+  color: var(--muted);
+  font-size: 13.5px;
+  line-height: 1.9;
+}
+.gps-pasos strong { color: var(--text); }
+
+
+#camara-modal {
+  position: fixed;
+  inset: 0;
+  background: black;
+  display: none;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+}
+
+#camara-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.camara-bar {
+  position: absolute;
+  bottom: 30px;
+  width: 100%;
+  height: 100px;
+}
+
+/* BOTÓN CAPTURAR (tipo iPhone) */
+.btn-capturar {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  transform: translateX(-50%);
+
+  width: 80px;
+  height: 80px;
+
+  border-radius: 50%;
+  background: #fff;
+
+  border: 4px solid rgba(255,255,255,0.6);
+  box-shadow: 0 0 0 6px rgba(255,255,255,0.2);
+
+  flex: none;
+}
+
+.btn-capturar:active {
+  transform: translateX(-50%) scale(0.9);
+}
+
+/* BOTÓN CANCELAR */
+.btn-camara-cancel {
+  position: absolute;
+  left: 20px;
+  bottom: 25px;
+
+  background: rgba(0,0,0,0.4);
+  padding: 10px 18px;
+  border-radius: 30px;
+}
+
+/* BOTÓN FLIP (tipo iPhone) */
+.btn-flip {
+  position: absolute;
+  right: 20px;
+  bottom: 20px;
+
+  width: 50px;
+  height: 50px;
+}
+
+.btn-flip svg {
+  width: 22px;
+  height: 22px;
+  stroke: white;
+}
+
+/* GRID tipo cámara */
+#camara-modal::after {
+  content: "";
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background-image: 
+    linear-gradient(rgba(255,255,255,0.2) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.2) 1px, transparent 1px);
+  background-size: 33.33% 33.33%;
+  pointer-events: none;
+}
+
+.btn-capturar {
+  flex: none !important;
+  width: 72px !important;
+  height: 72px !important;
+  aspect-ratio: 1 / 1;
+  border-radius: 50% !important;
+
+  display: block;
+}
+
+
+.camara-bar button {
+  flex: none !important;
+}
+
+.btn-capturar {
+  width: 72px !important;
+  height: 72px !important;
+  min-width: 72px;
+  min-height: 72px;
+
+  border-radius: 50% !important;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 0 !important;
+
+  aspect-ratio: 1 / 1;
+
+  appearance: none;
+  -webkit-appearance: none;
+}
+.btn-capturar:hover {
+  transform: translateX(-50%) scale(1.05);
+}

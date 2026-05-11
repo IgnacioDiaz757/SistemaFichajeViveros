@@ -1,0 +1,11 @@
+# Credenciales locales (nunca subir al repositorio)
+config.js
+.env
+.env.local
+.env.*.local
+
+# Carpeta generada por el build (contiene las credenciales reales)
+dist/
+
+# Dependencias
+node_modules/

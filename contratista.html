@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Panel de Obra</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body { font-family: Arial, sans-serif; background: #f0f0f0; color: #333; }
+
+    header {
+      background: #1a1a2e; color: #fff;
+      padding: 14px 20px;
+      display: flex; justify-content: space-between; align-items: center;
+      flex-wrap: wrap; gap: 10px;
+    }
+
+    .header-sub { font-size: 11px; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 2px; }
+    header h1   { font-size: 18px; font-weight: bold; }
+
+    .btn {
+      padding: 8px 14px; border: none; border-radius: 6px;
+      font-size: 13px; font-weight: bold; cursor: pointer;
+    }
+
+    .btn-gris  { background: #555; color: #fff; }
+    .btn-verde { background: #2e7d32; color: #fff; }
+
+    .contenido { max-width: 1000px; margin: 0 auto; padding: 16px; }
+
+    .resumen { display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
+
+    .card-stat {
+      flex: 1; min-width: 100px; background: #fff; border-radius: 8px;
+      padding: 14px; text-align: center; box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+    }
+
+    .card-stat .numero { font-size: 28px; font-weight: bold; }
+    .card-stat .label  { font-size: 12px; color: #888; margin-top: 2px; }
+    .verde { color: #2e7d32; }
+    .rojo  { color: #c62828; }
+    .gris  { color: #555; }
+
+    .filtros {
+      background: #fff; border-radius: 8px; padding: 12px 16px;
+      margin-bottom: 16px; display: flex; gap: 10px;
+      flex-wrap: wrap; align-items: flex-end;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+    }
+
+    .filtros label { font-size: 12px; color: #666; display: block; margin-bottom: 3px; }
+
+    .filtros input {
+      padding: 7px 10px; border: 1px solid #ccc;
+      border-radius: 6px; font-size: 13px; width: 170px;
+    }
+
+    .lista-titulo {
+      font-size: 15px; font-weight: bold; color: #1a1a2e;
+      margin-bottom: 12px; padding-bottom: 6px;
+      border-bottom: 2px solid #1a1a2e;
+    }
+
+    .empleado-bloque {
+      background: #fff; border-radius: 8px; margin-bottom: 12px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08); overflow: hidden;
+    }
+
+    .empleado-header {
+      background: #1a1a2e; color: #fff;
+      padding: 10px 16px; font-size: 14px; font-weight: bold;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+
+    .empleado-header .badge {
+      background: rgba(255,255,255,0.2); border-radius: 12px;
+      padding: 2px 10px; font-size: 12px; font-weight: normal;
+    }
+
+    .registro-fila {
+      display: flex; align-items: center; gap: 10px;
+      padding: 9px 16px; border-bottom: 1px solid #f0f0f0;
+      font-size: 13px; flex-wrap: wrap;
+    }
+
+    .registro-fila:last-child { border-bottom: none; }
+    .registro-fila .fecha { color: #888; white-space: nowrap; }
+
+    .tipo-ingreso { color: #2e7d32; font-weight: bold; white-space: nowrap; min-width: 80px; }
+    .tipo-salida  { color: #c62828; font-weight: bold; white-space: nowrap; min-width: 80px; }
+
+    .foto-thumb {
+      width: 52px; height: 52px; object-fit: cover;
+      border-radius: 8px; border: 1px solid #e0e0e0;
+      cursor: pointer; flex-shrink: 0; transition: opacity 0.15s;
+    }
+
+    .foto-thumb:hover { opacity: 0.85; }
+
+    .foto-none {
+      width: 52px; height: 52px; border-radius: 8px;
+      border: 1px dashed #ddd; display: flex; align-items: center;
+      justify-content: center; font-size: 18px; color: #ccc; flex-shrink: 0;
+    }
+
+    a { color: #1565c0; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    .v-ok   {
+      display: inline-block; background: #e8f5e9; color: #2e7d32;
+      border: 1px solid #a5d6a7; border-radius: 12px;
+      padding: 2px 9px; font-size: 11px; font-weight: bold; white-space: nowrap;
+    }
+
+    .v-fail {
+      display: inline-block; background: #ffebee; color: #c62828;
+      border: 1px solid #ef9a9a; border-radius: 12px;
+      padding: 2px 9px; font-size: 11px; font-weight: bold; white-space: nowrap;
+    }
+
+    .v-none { display: inline-block; color: #bbb; font-size: 11px; white-space: nowrap; }
+
+    #lightbox {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.88); z-index: 999;
+      align-items: center; justify-content: center; cursor: pointer;
+    }
+
+    #lightbox img {
+      max-width: 94vw; max-height: 90vh;
+      border-radius: 10px; object-fit: contain;
+    }
+
+    #error-msg {
+      text-align: center; padding: 60px 20px;
+      color: #888; font-size: 16px;
+    }
+
+    /* ── Media Queries Responsive ──────────────────────── */
+
+    /* Móvil pequeño (< 360px) */
+    @media (max-width: 359px) {
+      body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; }
+      
+      header {
+        padding: 10px 12px;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+      }
+      header h1 { font-size: 16px; }
+      .header-sub { font-size: 10px; }
+      .btn { 
+        padding: 6px 12px;
+        font-size: 12px;
+        border-radius: 6px;
+      }
+
+      .contenido { 
+        max-width: 100%;
+        padding: 12px 10px;
+      }
+
+      .resumen { 
+        gap: 8px;
+        margin-bottom: 12px;
+        flex-direction: column;
+      }
+      .card-stat { 
+        min-width: unset;
+        flex: 1;
+        padding: 10px 12px;
+        border-radius: 8px;
+      }
+      .card-stat .numero { font-size: 24px; }
+      .card-stat .label { font-size: 11px; }
+
+      .filtros {
+        padding: 10px 12px;
+        gap: 8px;
+        margin-bottom: 12px;
+        border-radius: 8px;
+      }
+      .filtros label { font-size: 11px; margin-bottom: 2px; }
+      .filtros input { 
+        padding: 6px 8px;
+        font-size: 12px;
+        width: 100%;
+        border-radius: 6px;
+      }
+
+      .lista-titulo { 
+        font-size: 14px;
+        margin-bottom: 10px;
+      }
+
+      .empleado-bloque { 
+        border-radius: 8px;
+        margin-bottom: 10px;
+      }
+      .empleado-header { 
+        padding: 8px 12px;
+        font-size: 13px;
+      }
+      .empleado-header .badge { 
+        padding: 2px 8px;
+        font-size: 11px;
+      }
+
+      .registro-fila { 
+        gap: 6px;
+        padding: 7px 12px;
+        font-size: 12px;
+      }
+      .foto-thumb, .foto-none { 
+        width: 40px;
+        height: 40px;
+      }
+
+      #lightbox img { 
+        max-width: 96vw;
+        max-height: 92vh;
+      }
+    }
+
+    /* Móvil estándar (360px - 640px) */
+    @media (min-width: 360px) and (max-width: 639px) {
+      header {
+        padding: 12px 16px;
+        gap: 10px;
+      }
+      header h1 { font-size: 17px; }
+      
+      .contenido { 
+        padding: 14px 12px;
+      }
+
+      .resumen { 
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+      .card-stat { 
+        flex: 1;
+        min-width: 80px;
+        padding: 12px 14px;
+      }
+      .card-stat .numero { font-size: 26px; }
+
+      .filtros {
+        padding: 12px 14px;
+        gap: 10px;
+      }
+      .filtros input { 
+        width: 100%;
+      }
+
+      .registro-fila { 
+        gap: 8px;
+        padding: 8px 14px;
+      }
+      .foto-thumb, .foto-none { 
+        width: 46px;
+        height: 46px;
+      }
+    }
+
+    /* Tablet (640px - 1024px) */
+    @media (min-width: 640px) and (max-width: 1023px) {
+      header {
+        padding: 14px 18px;
+        justify-content: space-between;
+      }
+      header h1 { font-size: 18px; }
+      .header-sub { 
+        font-size: 11px;
+        display: block;
+      }
+      
+      .contenido { 
+        max-width: 100%;
+        padding: 16px 18px;
+      }
+
+      .resumen { 
+        gap: 12px;
+        margin-bottom: 18px;
+      }
+      .card-stat { 
+        flex: 1;
+        padding: 16px 18px;
+        border-radius: 10px;
+        text-align: center;
+        transition: transform 0.2s, box-shadow 0.2s;
+      }
+      .card-stat:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      }
+      .card-stat .numero { font-size: 32px; }
+      .card-stat .label { 
+        font-size: 13px;
+        margin-top: 4px;
+      }
+
+      .filtros {
+        padding: 14px 16px;
+        gap: 12px;
+        margin-bottom: 18px;
+        border-radius: 10px;
+        align-items: center;
+      }
+      .filtros label { 
+        font-size: 12px;
+        margin-bottom: 4px;
+        display: block;
+      }
+      .filtros input { 
+        width: 200px;
+        padding: 8px 11px;
+        font-size: 13px;
+        border: 1px solid #d0d0d0;
+        border-radius: 7px;
+      }
+
+      .lista-titulo { 
+        font-size: 15px;
+        margin-bottom: 14px;
+      }
+
+      .empleado-bloque { 
+        border-radius: 10px;
+        margin-bottom: 14px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      }
+      .empleado-header { 
+        padding: 12px 16px;
+        font-size: 14px;
+        font-weight: 600;
+      }
+      .empleado-header .badge { 
+        padding: 3px 12px;
+        font-size: 12px;
+        border-radius: 16px;
+      }
+
+      .registro-fila { 
+        gap: 12px;
+        padding: 11px 16px;
+        font-size: 13px;
+        transition: background 0.15s;
+      }
+      .registro-fila:hover { background: #f8f8f8; }
+
+      .foto-thumb, .foto-none { 
+        width: 48px;
+        height: 48px;
+      }
+
+      .btn { 
+        padding: 8px 16px;
+        font-size: 13px;
+      }
+    }
+
+    /* Desktop (> 1024px) */
+    @media (min-width: 1024px) {
+      body { 
+        font-family: system-ui, -apple-system, "Segoe UI", Arial, sans-serif;
+        background: #f5f5f5;
+      }
+
+      header {
+        padding: 16px 24px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        position: sticky;
+        top: 0;
+        z-index: 50;
+      }
+      header h1 { 
+        font-size: 19px;
+        font-weight: 700;
+      }
+      .header-sub { 
+        font-size: 12px;
+        color: rgba(255,255,255,0.6);
+        display: block;
+      }
+      
+      .contenido { 
+        max-width: 1200px;
+        padding: 24px 24px 40px;
+      }
+
+      .resumen { 
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 16px;
+        margin-bottom: 24px;
+      }
+      .card-stat { 
+        padding: 20px 22px;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        transition: all 0.2s;
+        min-width: unset;
+      }
+      .card-stat:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+      }
+      .card-stat .numero { 
+        font-size: 36px;
+        font-weight: 800;
+      }
+      .card-stat .label { 
+        font-size: 14px;
+        margin-top: 6px;
+        font-weight: 500;
+      }
+
+      .filtros {
+        padding: 16px 18px;
+        gap: 14px;
+        margin-bottom: 24px;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        align-items: flex-end;
+        flex-wrap: wrap;
+      }
+      .filtros label { 
+        font-size: 12px;
+        margin-bottom: 6px;
+        display: block;
+        font-weight: 600;
+        color: #555;
+      }
+      .filtros input { 
+        width: 220px;
+        padding: 10px 12px;
+        font-size: 14px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        transition: all 0.2s;
+      }
+      .filtros input:hover {
+        border-color: #1565c0;
+      }
+      .filtros input:focus {
+        outline: none;
+        border-color: #1565c0;
+        box-shadow: 0 0 0 3px rgba(21,101,192,0.1);
+      }
+
+      .lista-titulo { 
+        font-size: 16px;
+        font-weight: 700;
+        margin-bottom: 16px;
+        color: #1a1a2e;
+      }
+
+      .empleado-bloque { 
+        border-radius: 12px;
+        margin-bottom: 16px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        overflow: hidden;
+        transition: all 0.2s;
+      }
+      .empleado-bloque:hover {
+        box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+      }
+      .empleado-header { 
+        padding: 13px 18px;
+        font-size: 14px;
+        font-weight: 700;
+        background: #1a1a2e;
+        color: #fff;
+      }
+      .empleado-header .badge { 
+        padding: 4px 12px;
+        font-size: 12px;
+        border-radius: 18px;
+        background: rgba(255,255,255,0.2);
+      }
+
+      .registro-fila { 
+        gap: 14px;
+        padding: 12px 18px;
+        font-size: 14px;
+        transition: background 0.15s;
+        align-items: center;
+      }
+      .registro-fila:hover { 
+        background: #f9f9f9;
+      }
+      .registro-fila .fecha { 
+        color: #888;
+        white-space: nowrap;
+      }
+
+      .tipo-ingreso, .tipo-salida { 
+        min-width: 100px;
+        font-weight: 700;
+        white-space: nowrap;
+      }
+
+      .foto-thumb, .foto-none { 
+        width: 52px;
+        height: 52px;
+        border-radius: 10px;
+        flex-shrink: 0;
+      }
+
+      .foto-thumb:hover { 
+        opacity: 0.8;
+        transform: scale(1.05);
+      }
+
+      .btn { 
+        padding: 10px 18px;
+        font-size: 14px;
+        border-radius: 8px;
+        font-weight: 600;
+        transition: all 0.2s;
+      }
+      .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      }
+      .btn:active {
+        transform: translateY(0);
+      }
+
+      .v-ok, .v-fail, .v-none { 
+        font-size: 12px;
+      }
+
+      a { 
+        color: #1565c0;
+        text-decoration: none;
+        transition: color 0.2s;
+      }
+      a:hover { 
+        color: #1040a0;
+        text-decoration: underline;
+      }
+
+      #lightbox img { 
+        max-width: 90vw;
+        max-height: 85vh;
+        border-radius: 12px;
+        box-shadow: 0 24px 64px rgba(0,0,0,0.5);
+      }
+    }
+
+    @media print {
+      .filtros, header .btn { display: none !important; }
+      body { background: #fff; }
+      header { background: #fff; color: #000; border-bottom: 2px solid #000; }
+      .header-sub { color: #666; }
+      .empleado-bloque { box-shadow: none; }
+    }
+  </style>
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+
+  <header>
+    <div>
+      <div class="header-sub">Panel de Asistencia</div>
+      <h1 id="obra-titulo">Cargando...</h1>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-gris"  onclick="cargarRegistros()">Actualizar</button>
+      <button class="btn btn-verde" onclick="window.print()">Imprimir</button>
+    </div>
+  </header>
+
+  <div class="contenido" id="contenido" style="display:none">
+
+    <div class="resumen">
+      <div class="card-stat">
+        <div class="numero gris" id="cnt-total">—</div>
+        <div class="label">Total registros</div>
+      </div>
+      <div class="card-stat">
+        <div class="numero verde" id="cnt-ingresos">—</div>
+        <div class="label">Ingresos</div>
+      </div>
+      <div class="card-stat">
+        <div class="numero rojo" id="cnt-salidas">—</div>
+        <div class="label">Salidas</div>
+      </div>
+    </div>
+
+    <div class="filtros">
+      <div>
+        <label>Empleado</label>
+        <input type="text" id="f-nombre" placeholder="Buscar por nombre" oninput="aplicarFiltros()">
+      </div>
+      <div>
+        <label>Desde</label>
+        <input type="date" id="f-desde" onchange="aplicarFiltros()">
+      </div>
+      <div>
+        <label>Hasta</label>
+        <input type="date" id="f-hasta" onchange="aplicarFiltros()">
+      </div>
+      <button class="btn btn-gris" onclick="limpiarFiltros()">Limpiar</button>
+    </div>
+
+    <div class="lista-titulo" id="lista-titulo">Registros</div>
+    <div id="lista-empleados"></div>
+
+  </div>
+
+  <div id="error-msg" style="display:none"></div>
+
+  <div id="lightbox" onclick="this.style.display='none'">
+    <img id="lightbox-img" alt="Foto">
+  </div>
+
+  <script src="config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="contratista.js"></script>
+
+</body>
+</html>
