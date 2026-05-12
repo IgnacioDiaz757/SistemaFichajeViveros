@@ -504,6 +504,7 @@ const MAPEO_PLANILLA = {
   colEntrada:   "B",    // B6:B36
   colSalida:    "C",    // C6:C36
   colNombre:    "D",    // D6:D36
+  colHoras:      "E",    // E6:E36
   colUbicacion: "F",    // F6:F36
   colEncargado: "G",    // G6:G36
 };
@@ -628,7 +629,7 @@ function construirCambios(nombre, puesto, contratista, encargado, registros, mes
     const diaLabel  = `${inicial} ${d}`;
 
     if (diaSemana === 0) {
-      cambios[`A${fila}`] = { v: diaLabel, sundayCol: "A" };
+      cambios[`A${fila}`] = { v: diaLabel, sundayCol: "A", bold: true };
       cambios[`B${fila}`] = { v: "", sundayCol: "BCFG" };
       cambios[`C${fila}`] = { v: "", sundayCol: "BCFG" };
       cambios[`D${fila}`] = { v: "", sundayCol: "D" };
@@ -643,7 +644,7 @@ function construirCambios(nombre, puesto, contratista, encargado, registros, mes
     const ausente = ingresos.length === 0 && salidas.length === 0;
 
     if (ausente) {
-      cambios[`A${fila}`] = { v: diaLabel, sundayCol: "A" };
+      cambios[`A${fila}`] = { v: diaLabel, sundayCol: "A", bold: true };
       cambios[`B${fila}`] = { v: "", sundayCol: "BCFG" };
       cambios[`C${fila}`] = { v: "", sundayCol: "BCFG" };
       cambios[`D${fila}`] = { v: "", sundayCol: "D" };
@@ -659,9 +660,10 @@ function construirCambios(nombre, puesto, contratista, encargado, registros, mes
     for (let i = 0; i < maxF && fila <= M.dataEndRow; i++) {
       const ing = ingresos[i];
       const sal = salidas[i];
-      cambios[`${M.colDia}${fila}`]       = i === 0 ? diaLabel : "";
+      cambios[`${M.colDia}${fila}`]       = i === 0 ? { v: diaLabel, bold: true, size: 14 } : { v: "", bold: true, size: 14 };
       cambios[`${M.colEntrada}${fila}`]   = { v: ing ? new Date(ing.hora).toLocaleTimeString("es-AR", { hour12: false }) : "", bold: true, size: 14 };
       cambios[`${M.colSalida}${fila}`]    = { v: sal ? new Date(sal.hora).toLocaleTimeString("es-AR", { hour12: false }) : "", bold: true, size: 14 };
+      cambios[`${M.colHoras}${fila}`]     = { v: ing && sal ? calcularDuracion(ing.hora, sal.hora) : "", bold: true, size: 14 };
       cambios[`${M.colNombre}${fila}`]    = { v: i === 0 ? nombre.toUpperCase() : "", bold: true, size: 10 };
       cambios[`${M.colUbicacion}${fila}`] = { v: (ing?.lugar || sal?.lugar || "").toUpperCase(), bold: true, size: 10 };
       fila++;
@@ -674,12 +676,13 @@ function construirCambios(nombre, puesto, contratista, encargado, registros, mes
     cambios[`${M.colDia}${r}`]       = "";
     cambios[`${M.colEntrada}${r}`]   = { v: "", bold: true, size: 14 };
     cambios[`${M.colSalida}${r}`]    = { v: "", bold: true, size: 14 };
+    cambios[`${M.colHoras}${r}`]     = { v: "", bold: true, size: 14 };
     cambios[`${M.colNombre}${r}`]    = { v: "", bold: true, size: 10 };
     cambios[`${M.colUbicacion}${r}`] = { v: "", bold: true, size: 10 };
   }
 
   // ── Resumen de horas — solo total mensual ──
-  const RES_INI = 40;
+  const RES_INI = 39;
   let totalMin = 0;
   Object.keys(byDate).forEach(fechaKey => {
     const { ingresos, salidas } = byDate[fechaKey];
@@ -691,18 +694,26 @@ function construirCambios(nombre, puesto, contratista, encargado, registros, mes
     }
   });
   const totalStr = `${Math.floor(totalMin / 60)}h ${String(Math.round(totalMin % 60)).padStart(2, "0")}m`;
-  cambios[`A${RES_INI}`]   = `RESUMEN HORAS TRABAJADAS — ${MESES_ES_PL[mes-1].toUpperCase()} ${anio}`;
-  cambios[`A${RES_INI+1}`] = "TOTAL HORAS DEL MES:";
-  cambios[`B${RES_INI+1}`] = totalStr;
+  cambios[`A${RES_INI}`]   = { v: `RESUMEN HORAS TRABAJADAS — ${MESES_ES_PL[mes-1].toUpperCase()} ${anio}`, bold: true, size: 12 };
+  cambios[`A${RES_INI+1}`] = { v: "TOTAL HORAS DEL MES:", bold: true, size: 12 };
+  cambios[`B${RES_INI+1}`] = { v: totalStr, bold: true, size: 12 };
 
   // ── Firma / Conformidad ──────────────────────────────
-  const FIRMA_ROW = RES_INI + 3; // fila 43 (deja fila 42 de separación)
+  const FIRMA_ROW = RES_INI + 3; // deja 2 filas de separación
   cambios[`D${FIRMA_ROW}`]     = { v: "__________________", bold: true, size: 12 };
   cambios[`D${FIRMA_ROW + 1}`] = { v: "NOMBRE Y APELLIDO", bold: true, size: 12 };
   cambios[`G${FIRMA_ROW}`]     = { v: "_______________", bold: true, size: 12 };
   cambios[`G${FIRMA_ROW + 1}`] = { v: "ACEPTO CONFORME", bold: true, size: 12 };
 
   return cambios;
+}
+
+function calcularDuracion(entrada, salida) {
+  const t1 = new Date(entrada);
+  const t2 = new Date(salida);
+  if (!(t1 instanceof Date) || !(t2 instanceof Date) || isNaN(t1) || isNaN(t2) || t2 <= t1) return "";
+  const diffMin = Math.round((t2 - t1) / 60000);
+  return `${Math.floor(diffMin / 60)}h ${String(diffMin % 60).padStart(2, "0")}m`;
 }
 
 // Carga el XLSX como ZIP, modifica el XML de la hoja y devuelve un Blob
@@ -822,9 +833,20 @@ function modificarCeldasXml(xml, cambios, smallStyleIdx, sundayStyles) {
 
     if (esObj && entrada.sundayCol && sundayStyles) {
       cell.setAttribute("s", String(sundayStyles[entrada.sundayCol] ?? sundayStyles.BCFG));
-      const t = doc.createElementNS(NS, "t");
-      t.textContent = valor;
-      is.appendChild(t);
+      if (entrada.bold) {
+        const r   = doc.createElementNS(NS, "r");
+        const rPr = doc.createElementNS(NS, "rPr");
+        rPr.appendChild(doc.createElementNS(NS, "b"));
+        r.appendChild(rPr);
+        const t = doc.createElementNS(NS, "t");
+        t.textContent = valor;
+        r.appendChild(t);
+        is.appendChild(r);
+      } else {
+        const t = doc.createElementNS(NS, "t");
+        t.textContent = valor;
+        is.appendChild(t);
+      }
     } else if (esObj && entrada.smallStyle && smallStyleIdx != null) {
       cell.setAttribute("s", String(smallStyleIdx));
       const t = doc.createElementNS(NS, "t");
@@ -891,9 +913,20 @@ function modificarCeldasXml(xml, cambios, smallStyleIdx, sundayStyles) {
     const is = doc.createElementNS(NS, "is");
     if (esObj && entrada.sundayCol && sundayStyles) {
       cell.setAttribute("s", String(sundayStyles[entrada.sundayCol] ?? sundayStyles.BCFG));
-      const t = doc.createElementNS(NS, "t");
-      t.textContent = valor;
-      is.appendChild(t);
+      if (entrada.bold) {
+        const r   = doc.createElementNS(NS, "r");
+        const rPr = doc.createElementNS(NS, "rPr");
+        rPr.appendChild(doc.createElementNS(NS, "b"));
+        r.appendChild(rPr);
+        const t = doc.createElementNS(NS, "t");
+        t.textContent = valor;
+        r.appendChild(t);
+        is.appendChild(r);
+      } else {
+        const t = doc.createElementNS(NS, "t");
+        t.textContent = valor;
+        is.appendChild(t);
+      }
     } else if (esObj && entrada.smallStyle && smallStyleIdx != null) {
       cell.setAttribute("s", String(smallStyleIdx));
       const t = doc.createElementNS(NS, "t");

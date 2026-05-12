@@ -19,7 +19,7 @@ let filtroMes = "";
 const MAPEO = {
   puesto: "A2", nombre: "A3", contratista: "C4", mesAnio: "G2",
   dataStartRow: 6, dataEndRow: 36,
-  colDia: "A", colEntrada: "B", colSalida: "C", colNombre: "D", colUbicacion: "F", colEncargado: "G",
+  colDia: "A", colEntrada: "B", colSalida: "C", colNombre: "D", colHoras: "E", colUbicacion: "F", colEncargado: "G",
 };
 const MESES = ["Enero","Febrero","Marzo","Abril","Mayo","Junio",
                "Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
@@ -720,6 +720,7 @@ function construirCambios(nombre, puesto, contratista, encargado, registros, mes
       cambios[`${M.colEntrada}${fila}`]   = { v: ing ? new Date(ing.hora).toLocaleTimeString("es-AR", { hour12: false }) : "", bold: true, size: 14 };
       cambios[`${M.colSalida}${fila}`]    = { v: sal ? new Date(sal.hora).toLocaleTimeString("es-AR", { hour12: false }) : "", bold: true, size: 14 };
       cambios[`${M.colNombre}${fila}`]    = { v: i === 0 ? nombre.toUpperCase() : "", bold: true, size: 10 };
+      cambios[`${M.colHoras}${fila}`]      = { v: ing && sal ? calcularDuracion(ing.hora, sal.hora) : "", bold: true, size: 14 };
       cambios[`${M.colUbicacion}${fila}`] = { v: (ing?.lugar || sal?.lugar || "").toUpperCase(), bold: true, size: 10 };
       fila++;
     }
@@ -734,7 +735,7 @@ function construirCambios(nombre, puesto, contratista, encargado, registros, mes
   }
 
   // ── Resumen de horas — solo total mensual ──
-  const RES_INI = 40;
+  const RES_INI = 39;
   let totalMin = 0;
   Object.keys(byDate).forEach(fechaKey => {
     const { ingresos, salidas } = byDate[fechaKey];
@@ -746,18 +747,26 @@ function construirCambios(nombre, puesto, contratista, encargado, registros, mes
     }
   });
   const totalStr = `${Math.floor(totalMin / 60)}h ${String(Math.round(totalMin % 60)).padStart(2, "0")}m`;
-  cambios[`A${RES_INI}`]   = `RESUMEN HORAS TRABAJADAS — ${MESES[mes-1].toUpperCase()} ${anio}`;
-  cambios[`A${RES_INI+1}`] = "TOTAL HORAS DEL MES:";
-  cambios[`B${RES_INI+1}`] = totalStr;
+  cambios[`A${RES_INI}`]   = { v: `RESUMEN HORAS TRABAJADAS — ${MESES[mes-1].toUpperCase()} ${anio}`, bold: true, size: 12 };
+  cambios[`A${RES_INI+1}`] = { v: "TOTAL HORAS DEL MES:", bold: true, size: 12 };
+  cambios[`B${RES_INI+1}`] = { v: totalStr, bold: true, size: 12 };
 
   // ── Firma / Conformidad ──────────────────────────────
-  const FIRMA_ROW = RES_INI + 3; // fila 43 (deja fila 42 de separación)
+  const FIRMA_ROW = RES_INI + 3; // deja 2 filas de separación
   cambios[`D${FIRMA_ROW}`]     = { v: "__________________", bold: true, size: 12 };
   cambios[`D${FIRMA_ROW + 1}`] = { v: "NOMBRE Y APELLIDO", bold: true, size: 12 };
   cambios[`G${FIRMA_ROW}`]     = { v: "_______________", bold: true, size: 12 };
   cambios[`G${FIRMA_ROW + 1}`] = { v: "ACEPTO CONFORME", bold: true, size: 12 };
 
   return cambios;
+}
+
+function calcularDuracion(entrada, salida) {
+  const t1 = new Date(entrada);
+  const t2 = new Date(salida);
+  if (!(t1 instanceof Date) || !(t2 instanceof Date) || isNaN(t1) || isNaN(t2) || t2 <= t1) return "";
+  const diffMin = Math.round((t2 - t1) / 60000);
+  return `${Math.floor(diffMin / 60)}h ${String(diffMin % 60).padStart(2, "0")}m`;
 }
 
 async function aplicarCambiosAPlantilla(ab, cambios) {
