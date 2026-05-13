@@ -662,7 +662,7 @@ function construirCambios(nombre, puesto, contratista, encargado, registros, mes
       const sal = salidas[i];
       cambios[`${M.colDia}${fila}`]       = i === 0 ? { v: diaLabel, bold: true, size: 14 } : { v: "", bold: true, size: 14 };
       cambios[`${M.colEntrada}${fila}`]   = { v: ing ? new Date(ing.hora).toLocaleTimeString("es-AR", { hour12: false }) : "", bold: true, size: 14 };
-      cambios[`${M.colSalida}${fila}`]    = { v: sal ? new Date(sal.hora).toLocaleTimeString("es-AR", { hour12: false }) : "", bold: true, size: 14 };
+      cambios[`${M.colSalida}${fila}`]    = sal ? { v: new Date(sal.hora).toLocaleTimeString("es-AR", { hour12: false }), bold: true, size: 14 } : (ing ? { v: "NO MARCÓ", bold: false, size: 10 } : { v: "", bold: true, size: 14 });
       cambios[`${M.colHoras}${fila}`]     = { v: ing && sal ? calcularDuracion(ing.hora, sal.hora) : "", bold: true, size: 14 };
       cambios[`${M.colNombre}${fila}`]    = { v: i === 0 ? nombre.toUpperCase() : "", bold: true, size: 10 };
       cambios[`${M.colUbicacion}${fila}`] = { v: (ing?.lugar || sal?.lugar || "").toUpperCase(), bold: true, size: 10 };

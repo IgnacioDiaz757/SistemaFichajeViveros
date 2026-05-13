@@ -31,34 +31,44 @@ async function cargarEmpleados() {
     .order("nombre");
 
   const lista = document.getElementById("lista-asociados");
+  const badge = document.getElementById("badge-count");
 
   if (error || !data) {
-    lista.innerHTML = '<p style="color:#c62828;font-size:13px">Error al cargar empleados.</p>';
+    lista.innerHTML = '<div class="empty-state"><p style="color:#dc2626">Error al cargar asociados.</p></div>';
     return;
   }
   if (!data.length) {
-    lista.innerHTML = '<p style="color:#999;font-size:13px">Sin empleados registrados aún.</p>';
+    if (badge) badge.textContent = "0";
+    lista.innerHTML = '<div class="empty-state"><p>Sin asociados registrados aún.</p></div>';
     return;
   }
 
+  if (badge) badge.textContent = data.length;
+
   lista.innerHTML = data.map(e => {
-    const sub = [e.puesto, e.obra, e.contratista].filter(Boolean).join(" · ");
-    const obraEsc = (e.obra || "").replace(/'/g, "\\'");
+    const iniciales = e.nombre.split(" ").slice(0, 2).map(w => w[0] || "").join("").toUpperCase() || "?";
+    const sub       = [e.puesto, e.obra, e.contratista].filter(Boolean).join(" · ");
+    const obraEsc   = (e.obra || "").replace(/'/g, "\\'");
+    const badges    = [e.puesto, e.obra, e.contratista].filter(Boolean)
+                        .map(v => `<span class="emp-badge">${v}</span>`).join("");
     return `
     <div class="empleado-item" id="emp-item-${e.id}">
-      <div style="flex:1;min-width:0">
-        <span class="empleado-nombre"><i data-lucide="user"></i> ${e.nombre}</span>
+      <div class="emp-avatar">${iniciales}</div>
+      <div class="emp-body">
+        <span class="empleado-nombre">${e.nombre}</span>
         <span id="emp-sub-${e.id}" style="display:block;font-size:12px;color:var(--text-muted);margin-top:2px">${sub || "Sin obra asignada"}</span>
-        <div id="emp-edit-${e.id}" style="display:none;margin-top:6px;display:none;gap:6px;align-items:center;flex-wrap:wrap">
-          <select id="emp-sel-${e.id}" style="font-size:13px;padding:4px 6px;border:1px solid #ccc;border-radius:6px">
-            <option value="">— Sin obra —</option>
-          </select>
-          <button onclick="guardarObraEmpleado('${e.id}')" style="font-size:12px;padding:4px 10px;background:#2e7d32;color:#fff;border:none;border-radius:6px;cursor:pointer">Guardar</button>
-          <button onclick="cancelarEditarObra('${e.id}')" style="font-size:12px;padding:4px 10px;background:#888;color:#fff;border:none;border-radius:6px;cursor:pointer">Cancelar</button>
+        ${badges ? `<div class="emp-badges">${badges}</div>` : ""}
+        <div id="emp-edit-${e.id}" class="emp-edit-panel" style="display:none;gap:7px;align-items:center;flex-wrap:wrap">
+          <select id="emp-sel-${e.id}"><option value="">— Sin obra —</option></select>
+          <button onclick="guardarObraEmpleado('${e.id}')" class="btn-save-obra">Guardar</button>
+          <button onclick="cancelarEditarObra('${e.id}')" class="btn-cancel-obra">Cancelar</button>
         </div>
       </div>
-      <div style="display:flex;gap:6px;align-items:flex-start;flex-shrink:0">
-        <button class="btn-azul btn" style="font-size:12px;padding:5px 10px" onclick="abrirEditarObra('${e.id}', '${obraEsc}')"><i data-lucide="pencil"></i> Obra</button>
+      <div class="emp-actions">
+        <button class="btn-edit-obra btn-azul btn" onclick="abrirEditarObra('${e.id}', '${obraEsc}')">
+          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          Obra
+        </button>
         <button class="btn-del" onclick="eliminarEmpleado('${e.id}', '${e.nombre.replace(/'/g, "\\'")}')">✕</button>
       </div>
     </div>`;

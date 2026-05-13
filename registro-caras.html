@@ -3,605 +3,721 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Registrar Empleados — Reconocimiento Facial</title>
+  <title>Registrar Asociados — Viveros Unidos</title>
   <script>if(localStorage.getItem("theme")==="dark")document.documentElement.setAttribute("data-theme","dark");</script>
   <style>
+    /* ── Variables ─────────────────────────────────────────── */
     :root {
-      --bg:        #f0f0f0;
-      --surface:   #ffffff;
-      --header-bg: #1a1a2e;
-      --text:      #333333;
-      --text-muted:#888888;
-      --text-label:#666666;
-      --border:    #cccccc;
-      --border-lt: #eeeeee;
-      --input-bg:  #ffffff;
+      --brand:       #e61d86;
+      --brand-dark:  #b5156a;
+      --brand-light: rgba(230,29,134,0.08);
+      --brand-ring:  rgba(230,29,134,0.18);
+      --bg:          #f3f4f8;
+      --surface:     #ffffff;
+      --surface-2:   #f8f9fb;
+      --header-bg:   #0f1623;
+      --text:        #1a1e2e;
+      --text-muted:  #6b7280;
+      --text-label:  #9ca3af;
+      --border:      #e5e7eb;
+      --border-lt:   #f0f1f4;
+      --input-bg:    #ffffff;
+      --shadow-sm:   0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.03);
+      --shadow-md:   0 4px 16px rgba(0,0,0,0.07), 0 2px 6px rgba(0,0,0,0.04);
+      --radius:      14px;
+      --radius-sm:   9px;
     }
     [data-theme="dark"] {
-      --bg:        #0e1117;
-      --surface:   #1a1f2e;
-      --header-bg: #080b12;
-      --text:      #e0e0e8;
-      --text-muted:#9ca3af;
-      --text-label:#6b7280;
-      --border:    #2d3748;
-      --border-lt: #1e2433;
-      --input-bg:  #111827;
+      --bg:          #0e1117;
+      --surface:     #161b27;
+      --surface-2:   #1e2436;
+      --header-bg:   #080b12;
+      --text:        #e2e8f0;
+      --text-muted:  #94a3b8;
+      --text-label:  #64748b;
+      --border:      #2a3447;
+      --border-lt:   #1e2a3a;
+      --input-bg:    #1a2035;
+      --shadow-sm:   0 1px 3px rgba(0,0,0,0.3);
+      --shadow-md:   0 4px 16px rgba(0,0,0,0.3);
     }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: Arial, sans-serif; background: var(--bg); color: var(--text); }
 
+    /* ── Reset ─────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      line-height: 1.5;
+    }
+
+    /* ── Header ────────────────────────────────────────────── */
     header {
-      background: var(--header-bg); color: #fff;
-      padding: 14px 20px;
-      display: flex; justify-content: space-between; align-items: center; gap: 10px;
+      background: var(--header-bg);
+      padding: 0 20px;
+      height: 58px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
     }
-    header h1 { font-size: 16px; font-weight: bold; }
-    .contenido { max-width: 700px; margin: 0 auto; padding: 16px; }
-
-    .btn { padding: 8px 14px; border: none; border-radius: 6px; font-size: 13px; font-weight: bold; cursor: pointer; }
-    .btn-verde  { background: #2e7d32; color: #fff; }
-    .btn-azul   { background: #1565c0; color: #fff; }
-    .btn-gris   { background: #555; color: #fff; }
-
-    /* Sección agregar */
-    .seccion {
-      background: var(--surface); border-radius: 8px; padding: 20px;
-      margin-bottom: 16px; box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+    .header-brand {
+      display: flex;
+      align-items: center;
+      gap: 11px;
     }
-    .seccion h2 { font-size: 14px; font-weight: bold; margin-bottom: 14px; color: var(--text); }
+    .header-icon {
+      width: 34px; height: 34px;
+      background: var(--brand);
+      border-radius: 9px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .header-icon svg { width: 17px; height: 17px; stroke: #fff; }
+    .header-titles h1 {
+      font-size: 15px;
+      font-weight: 700;
+      color: #fff;
+      letter-spacing: -0.2px;
+      line-height: 1.2;
+    }
+    .header-titles span {
+      font-size: 11px;
+      color: rgba(255,255,255,0.35);
+      display: none;
+    }
+    @media (min-width: 480px) { .header-titles span { display: block; } }
 
-    .fila-input { display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap; }
-    .fila-input label { font-size: 12px; color: var(--text-label); display: block; margin-bottom: 4px; }
-    .fila-input input {
-      flex: 1; min-width: 200px;
-      padding: 9px 12px; border: 1px solid var(--border);
-      border-radius: 6px; font-size: 14px;
-      background: var(--input-bg); color: var(--text);
+    .btn-back {
+      display: flex; align-items: center; gap: 6px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.1);
+      color: rgba(255,255,255,0.65);
+      padding: 7px 13px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.15s;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .btn-back:hover { background: rgba(255,255,255,0.1); color: #fff; }
+    .btn-back svg { width: 14px; height: 14px; flex-shrink: 0; }
+
+    /* ── Layout ─────────────────────────────────────────────── */
+    .contenido {
+      max-width: 700px;
+      margin: 0 auto;
+      padding: 24px 14px 56px;
+    }
+    @media (min-width: 640px) { .contenido { padding: 32px 20px 60px; } }
+
+    /* ── Card ───────────────────────────────────────────────── */
+    .card {
+      background: var(--surface);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow-sm);
+      margin-bottom: 18px;
+      overflow: hidden;
+    }
+    .card-header {
+      padding: 18px 20px 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+    .card-title {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .card-title-icon {
+      width: 30px; height: 30px;
+      background: var(--brand-light);
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .card-title-icon svg { width: 15px; height: 15px; stroke: var(--brand); }
+    .card-body { padding: 16px 20px 20px; }
+
+    /* ── Form ────────────────────────────────────────────────── */
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    @media (max-width: 520px) { .form-grid { grid-template-columns: 1fr; gap: 10px; } }
+
+    .form-field { display: flex; flex-direction: column; gap: 5px; }
+    .form-field label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.7px;
+      color: var(--text-label);
+    }
+    .form-field input,
+    .form-field select {
+      width: 100%;
+      padding: 10px 13px;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      font-size: 14px;
+      background: var(--input-bg);
+      color: var(--text);
+      transition: border-color 0.15s, box-shadow 0.15s;
+      -webkit-appearance: none;
+      appearance: none;
+    }
+    .form-field input::placeholder { color: var(--text-label); }
+    .form-field input:hover,
+    .form-field select:hover { border-color: #d1d5db; }
+    [data-theme="dark"] .form-field input:hover,
+    [data-theme="dark"] .form-field select:hover { border-color: #3d4f6a; }
+    .form-field input:focus,
+    .form-field select:focus {
+      outline: none;
+      border-color: var(--brand);
+      box-shadow: 0 0 0 3px var(--brand-ring);
+    }
+    .form-field select {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='11' height='11' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2.5' stroke-linecap='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      padding-right: 34px;
+      cursor: pointer;
     }
 
-    #estado { font-size: 13px; margin-top: 10px; min-height: 18px; }
-    #estado.ok    { color: #2e7d32; font-weight: bold; }
-    #estado.error { color: #c62828; font-weight: bold; }
+    /* Botón principal */
+    .btn-registrar {
+      width: 100%;
+      margin-top: 16px;
+      padding: 13px 20px;
+      background: var(--brand);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+      letter-spacing: -0.2px;
+      transition: background 0.15s, transform 0.1s, box-shadow 0.15s;
+      box-shadow: 0 3px 10px rgba(230,29,134,0.3);
+    }
+    .btn-registrar:hover {
+      background: var(--brand-dark);
+      box-shadow: 0 5px 18px rgba(230,29,134,0.38);
+      transform: translateY(-1px);
+    }
+    .btn-registrar:active { transform: translateY(0); }
+    .btn-registrar svg { width: 18px; height: 18px; flex-shrink: 0; }
 
-    /* Lista empleados */
+    /* Estado feedback */
+    #estado {
+      margin-top: 10px;
+      font-size: 13px;
+      min-height: 0;
+      border-radius: 8px;
+      transition: all 0.2s;
+    }
+    #estado:not(:empty) {
+      padding: 9px 13px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    #estado.ok    { background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; font-weight: 600; }
+    #estado.error { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; font-weight: 600; }
+    [data-theme="dark"] #estado.ok    { background: rgba(21,128,61,0.1);  color: #4ade80; border-color: rgba(21,128,61,0.25); }
+    [data-theme="dark"] #estado.error { background: rgba(220,38,38,0.1);  color: #f87171; border-color: rgba(220,38,38,0.25); }
+
+    /* ── Lista de asociados ─────────────────────────────────── */
+    .list-meta {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .badge-count {
+      background: var(--brand-light);
+      color: var(--brand);
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 9px;
+      border-radius: 20px;
+      border: 1px solid rgba(230,29,134,0.15);
+    }
+
+    /* Cada empleado */
     .empleado-item {
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 11px 0; border-bottom: 1px solid var(--border-lt); font-size: 14px;
+      display: flex;
+      align-items: flex-start;
+      gap: 13px;
+      padding: 14px 0;
+      border-bottom: 1px solid var(--border-lt);
     }
-    .empleado-item:last-child { border-bottom: none; }
-    .empleado-nombre { font-weight: 600; }
+    .empleado-item:last-child { border-bottom: none; padding-bottom: 0; }
+    .empleado-item:first-child { padding-top: 2px; }
+
+    .emp-avatar {
+      width: 40px; height: 40px;
+      border-radius: 50%;
+      background: var(--brand);
+      color: #fff;
+      font-size: 13px;
+      font-weight: 800;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      letter-spacing: -0.3px;
+      box-shadow: 0 2px 8px rgba(230,29,134,0.25);
+    }
+
+    .emp-body { flex: 1; min-width: 0; }
+    .empleado-nombre {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      display: block;
+    }
+    .emp-badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      margin-top: 5px;
+    }
+    .emp-badge {
+      font-size: 10px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 4px;
+      background: var(--surface-2);
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+    }
+
+    /* Edit panel */
+    .emp-edit-panel {
+      margin-top: 8px;
+      padding: 10px 12px;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      gap: 7px !important;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .emp-edit-panel select {
+      flex: 1;
+      min-width: 140px;
+      font-size: 13px;
+      padding: 6px 10px;
+      border: 1.5px solid var(--border);
+      border-radius: 6px;
+      background: var(--input-bg);
+      color: var(--text);
+      -webkit-appearance: none;
+      appearance: none;
+    }
+    .emp-edit-panel select:focus { outline: none; border-color: var(--brand); }
+    .btn-save-obra {
+      font-size: 12px; font-weight: 700;
+      padding: 6px 13px;
+      background: var(--brand); color: #fff;
+      border: none; border-radius: 6px; cursor: pointer;
+      transition: background 0.15s;
+    }
+    .btn-save-obra:hover { background: var(--brand-dark); }
+    .btn-cancel-obra {
+      font-size: 12px; font-weight: 500;
+      padding: 6px 12px;
+      background: none; color: var(--text-muted);
+      border: 1px solid var(--border); border-radius: 6px; cursor: pointer;
+    }
+
+    .emp-actions {
+      display: flex;
+      gap: 6px;
+      align-items: flex-start;
+      flex-shrink: 0;
+    }
+    .btn-edit-obra {
+      display: flex; align-items: center; gap: 5px;
+      font-size: 12px; font-weight: 600;
+      padding: 6px 11px;
+      background: var(--surface-2);
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+      border-radius: 6px; cursor: pointer;
+      transition: all 0.15s;
+    }
+    .btn-edit-obra:hover { border-color: var(--brand); color: var(--brand); background: var(--brand-light); }
+    .btn-edit-obra svg { width: 12px; height: 12px; flex-shrink: 0; }
 
     .btn-del {
-      background: none; border: 1px solid var(--border); color: var(--text-muted);
-      border-radius: 5px; padding: 4px 10px; font-size: 12px; cursor: pointer;
+      width: 32px; height: 32px;
+      display: flex; align-items: center; justify-content: center;
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text-label);
+      cursor: pointer;
+      font-size: 13px;
+      transition: all 0.15s;
     }
-    .btn-del:hover { background: #ffebee; border-color: #ef9a9a; color: #c62828; }
+    .btn-del:hover { background: #fef2f2; border-color: #fca5a5; color: #dc2626; }
+    [data-theme="dark"] .btn-del:hover { background: rgba(220,38,38,0.12); border-color: rgba(220,38,38,0.3); color: #f87171; }
 
-    /* Modal cámara */
+    .empty-state {
+      text-align: center;
+      padding: 28px 12px;
+      color: var(--text-muted);
+    }
+    .empty-state p { font-size: 13px; margin-top: 8px; }
+
+    /* ── Modal cámara ───────────────────────────────────────── */
     #camara-modal {
-      display: none; position: fixed; inset: 0;
-      background: #000; z-index: 999;
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(5,8,16,0.97);
+      z-index: 999;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-end;
+    }
+    @media (min-width: 600px) {
+      #camara-modal { justify-content: center; }
+    }
+
+    .cam-wrap {
+      position: relative;
+      width: 100%;
+      max-width: 540px;
+      display: flex;
       flex-direction: column;
     }
-    #reg-video { flex: 1; min-height: 0; width: 100%; object-fit: cover; }
+    @media (min-width: 600px) {
+      .cam-wrap { border-radius: 18px; overflow: hidden; }
+    }
+
+    #reg-video {
+      width: 100%;
+      aspect-ratio: 4/3;
+      object-fit: cover;
+      display: block;
+      background: #000;
+    }
+    @media (max-width: 599px) {
+      #camara-modal { justify-content: flex-end; }
+      .cam-wrap { max-width: 100%; }
+      #reg-video { aspect-ratio: unset; height: 52vh; }
+    }
     #reg-canvas { display: none; }
 
+    /* Guía cara */
+    .cam-face-guide {
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      bottom: 80px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+    }
+    .cam-face-ring {
+      width: 46%;
+      aspect-ratio: 1;
+      border-radius: 50%;
+      border: 2px solid rgba(255,255,255,0.45);
+      box-shadow: 0 0 0 1px rgba(255,255,255,0.08), inset 0 0 0 1px rgba(255,255,255,0.08);
+    }
+    @media (max-width: 599px) { .cam-face-ring { width: 52%; } }
+
+    /* Barra inferior de cámara */
     .camara-bar {
+      background: #0a0d18;
+      padding: 20px 20px 28px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 15px;
       flex-shrink: 0;
-      background: #111; padding: 16px 24px 32px;
-      display: flex; flex-direction: column; align-items: center; gap: 14px;
     }
 
-    @media (min-width: 768px) {
-      #camara-modal {
-        align-items: center;
-        justify-content: center;
-        background: rgba(0,0,0,0.92);
-      }
-      #reg-video {
-        max-width: 640px;
-        max-height: calc(100vh - 180px);
-        border-radius: 12px 12px 0 0;
-      }
-      .camara-bar {
-        width: 100%;
-        max-width: 640px;
-        border-radius: 0 0 12px 12px;
-        padding: 16px 48px 24px;
-      }
+    /* Pasos de progreso */
+    .cam-progress {
+      display: flex;
+      align-items: center;
+      gap: 0;
+    }
+    .cam-step-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+    }
+    /* Los dot-N son usados por el JS — los estilizamos dentro de .cam-progress */
+    .cam-progress .dot {
+      width: 34px; height: 34px;
+      border-radius: 50%;
+      border: 2px solid rgba(255,255,255,0.15);
+      color: rgba(255,255,255,0.25);
+      font-size: 13px;
+      font-weight: 700;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.3s;
+    }
+    .cam-progress .dot.dot-ok {
+      background: #22c55e;
+      border-color: #22c55e;
+      color: #fff;
+      box-shadow: 0 0 14px rgba(34,197,94,0.45);
+    }
+    .cam-step-lbl {
+      font-size: 9px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: rgba(255,255,255,0.22);
+    }
+    .cam-step-wrap .dot.dot-ok ~ .cam-step-lbl { color: rgba(255,255,255,0.55); }
+    .cam-step-line {
+      width: 32px;
+      height: 2px;
+      background: rgba(255,255,255,0.1);
+      margin-bottom: 18px;
     }
 
-    /* Puntos de progreso */
-    .dots { display: flex; gap: 10px; }
-    .dot {
-      width: 12px; height: 12px; border-radius: 50%;
-      background: rgba(255,255,255,0.25); transition: background 0.2s;
-    }
-    .dot-ok { background: #4caf50; }
+    /* Ocultar el div .dots original — no se usa en la UI pero JS lo referencia via getElementById */
+    .dots { display: none !important; }
 
-    #indicador { color: rgba(255,255,255,0.8); font-size: 13px; text-align: center; }
+    #indicador {
+      color: rgba(255,255,255,0.65);
+      font-size: 13px;
+      text-align: center;
+      max-width: 280px;
+      line-height: 1.45;
+    }
 
     .camara-acciones {
-      display: flex; gap: 20px; align-items: center; justify-content: center;
+      display: flex;
+      align-items: center;
+      gap: 28px;
     }
 
     .btn-capturar {
-      width: 72px; height: 72px; border-radius: 50%;
-      background: #fff; border: 4px solid transparent;
-      box-shadow: 0 0 0 3px rgba(255,255,255,0.85);
-      cursor: pointer; transition: transform 0.1s;
+      width: 72px; height: 72px;
+      border-radius: 50%;
+      background: #fff;
+      border: none;
+      cursor: pointer;
+      position: relative;
+      transition: transform 0.1s, box-shadow 0.15s;
+      box-shadow: 0 0 0 5px rgba(255,255,255,0.15);
+      flex-shrink: 0;
     }
-    .btn-capturar:active  { transform: scale(0.87); }
-    .btn-capturar:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+    .btn-capturar::after {
+      content: "";
+      position: absolute;
+      inset: 5px;
+      border-radius: 50%;
+      border: 2px solid #e5e7eb;
+    }
+    .btn-capturar:hover:not(:disabled) {
+      box-shadow: 0 0 0 5px rgba(255,255,255,0.28);
+      transform: scale(1.05);
+    }
+    .btn-capturar:active:not(:disabled) { transform: scale(0.9); }
+    .btn-capturar:disabled { opacity: 0.3; cursor: not-allowed; transform: none; }
 
     .btn-cancelar-cam {
-      background: none; border: 2px solid rgba(255,255,255,0.4);
-      color: #fff; border-radius: 50px; padding: 10px 20px;
-      font-size: 14px; font-weight: 600; cursor: pointer;
+      display: flex; align-items: center; gap: 6px;
+      background: none;
+      border: 1.5px solid rgba(255,255,255,0.16);
+      color: rgba(255,255,255,0.55);
+      border-radius: 40px;
+      padding: 10px 18px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+      white-space: nowrap;
     }
-
-    /* ── Media Queries Responsive ──────────────────────– */
-
-    /* Móvil pequeño (< 360px) */
-    @media (max-width: 359px) {
-      body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; }
-      
-      header {
-        padding: 10px 12px;
-        flex-wrap: wrap;
-        gap: 8px;
-      }
-      header h1 { font-size: 15px; }
-      .btn { 
-        padding: 6px 12px;
-        font-size: 12px;
-        border-radius: 6px;
-      }
-
-      .contenido { 
-        max-width: 100%;
-        padding: 12px 10px;
-      }
-
-      .seccion {
-        padding: 14px 12px;
-        border-radius: 8px;
-        margin-bottom: 12px;
-      }
-      .seccion h2 { 
-        font-size: 13px;
-        margin-bottom: 12px;
-      }
-
-      .fila-input {
-        flex-direction: column;
-        gap: 10px;
-      }
-      .fila-input > div {
-        width: 100% !important;
-        min-width: unset !important;
-      }
-      .fila-input input, 
-      .fila-input select {
-        width: 100%;
-        font-size: 13px;
-        padding: 8px 10px;
-        border-radius: 6px;
-      }
-
-      .empleado-item {
-        padding: 9px 0;
-        font-size: 12px;
-      }
-      .btn-del {
-        padding: 3px 8px;
-        font-size: 11px;
-      }
-
-      #reg-video {
-        width: 100%;
-      }
-      .camara-bar {
-        padding: 12px 16px 24px;
-        gap: 10px;
-      }
-      .btn-capturar {
-        width: 64px;
-        height: 64px;
-      }
-      .btn-cancelar-cam {
-        padding: 8px 16px;
-        font-size: 12px;
-      }
-
-      #indicador { font-size: 12px; }
+    .btn-cancelar-cam:hover {
+      border-color: rgba(255,255,255,0.4);
+      color: #fff;
     }
-
-    /* Móvil estándar (360px - 640px) */
-    @media (min-width: 360px) and (max-width: 639px) {
-      header {
-        padding: 12px 16px;
-        gap: 10px;
-      }
-      header h1 { font-size: 16px; }
-      
-      .contenido { 
-        padding: 14px 12px;
-      }
-
-      .seccion {
-        padding: 16px 14px;
-        margin-bottom: 14px;
-      }
-      .seccion h2 { font-size: 14px; }
-
-      .fila-input {
-        flex-wrap: wrap;
-        gap: 10px;
-      }
-      .fila-input input,
-      .fila-input select {
-        font-size: 14px;
-        padding: 9px 11px;
-      }
-
-      .empleado-item {
-        padding: 10px 0;
-        font-size: 13px;
-      }
-    }
-
-    /* Tablet (640px - 1024px) */
-    @media (min-width: 640px) and (max-width: 1023px) {
-      header {
-        padding: 13px 18px;
-        justify-content: space-between;
-      }
-      header h1 { font-size: 17px; }
-      
-      .contenido { 
-        max-width: 900px;
-        padding: 18px 16px;
-      }
-
-      .seccion {
-        padding: 18px 18px;
-        border-radius: 10px;
-        margin-bottom: 16px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-      }
-      .seccion h2 { 
-        font-size: 15px;
-        margin-bottom: 16px;
-        font-weight: 600;
-      }
-
-      .fila-input {
-        gap: 12px;
-        align-items: flex-end;
-      }
-      .fila-input > div {
-        flex: 1;
-        min-width: 160px;
-      }
-      .fila-input label {
-        font-size: 12px;
-        margin-bottom: 6px;
-        display: block;
-      }
-      .fila-input input,
-      .fila-input select {
-        width: 100%;
-        padding: 10px 12px;
-        font-size: 14px;
-        border-radius: 8px;
-        border: 1px solid var(--border);
-      }
-      .fila-input .btn {
-        align-self: flex-end;
-        padding: 10px 18px;
-        font-size: 14px;
-      }
-
-      #estado { font-size: 14px; }
-
-      .empleado-item {
-        padding: 11px 0;
-        font-size: 14px;
-      }
-      .btn-del {
-        padding: 5px 10px;
-        font-size: 12px;
-      }
-
-      #reg-video {
-        max-width: 720px;
-        border-radius: 10px 10px 0 0;
-      }
-      .camara-bar {
-        max-width: 720px;
-        border-radius: 0 0 10px 10px;
-        padding: 16px 40px 24px;
-      }
-    }
-
-    /* Desktop (> 1024px) */
-    @media (min-width: 1024px) {
-      body { 
-        font-family: system-ui, -apple-system, "Segoe UI", Arial, sans-serif;
-        background: #f5f5f5;
-      }
-
-      header {
-        padding: 14px 24px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        position: sticky;
-        top: 0;
-        z-index: 50;
-      }
-      header h1 { 
-        font-size: 18px;
-        font-weight: 700;
-      }
-      .btn { 
-        padding: 9px 18px;
-        font-size: 14px;
-        border-radius: 8px;
-        font-weight: 600;
-        transition: all 0.2s;
-      }
-      .btn:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-      }
-      .btn:active {
-        transform: translateY(0);
-      }
-
-      .contenido { 
-        max-width: 1000px;
-        padding: 24px 24px 40px;
-      }
-
-      .seccion {
-        background: var(--surface);
-        border-radius: 12px;
-        padding: 24px 26px;
-        margin-bottom: 18px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-        transition: box-shadow 0.2s;
-      }
-      .seccion:hover {
-        box-shadow: 0 4px 16px rgba(0,0,0,0.12);
-      }
-      .seccion h2 { 
-        font-size: 16px;
-        font-weight: 700;
-        margin-bottom: 18px;
-        color: var(--text);
-      }
-
-      .fila-input {
-        display: flex;
-        gap: 14px;
-        align-items: flex-end;
-        flex-wrap: wrap;
-      }
-      .fila-input > div {
-        flex: 1;
-        min-width: 200px;
-      }
-      .fila-input label {
-        display: block;
-        font-size: 12px;
-        font-weight: 600;
-        margin-bottom: 8px;
-        color: var(--text-label);
-        text-transform: uppercase;
-        letter-spacing: 0.4px;
-      }
-      .fila-input input,
-      .fila-input select {
-        width: 100%;
-        padding: 11px 13px;
-        font-size: 15px;
-        border: 1.5px solid var(--border);
-        border-radius: 10px;
-        background: var(--input-bg);
-        color: var(--text);
-        transition: all 0.2s;
-      }
-      .fila-input input:hover,
-      .fila-input select:hover {
-        border-color: #1565c0;
-      }
-      .fila-input input:focus,
-      .fila-input select:focus {
-        outline: none;
-        border-color: #1565c0;
-        box-shadow: 0 0 0 3px rgba(21,101,192,0.1);
-      }
-      .fila-input .btn {
-        align-self: flex-end;
-        padding: 11px 20px;
-      }
-
-      #estado { 
-        font-size: 15px;
-        margin-top: 12px;
-      }
-
-      .empleado-item {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 13px 0;
-        border-bottom: 1px solid var(--border-lt);
-        font-size: 15px;
-        transition: background 0.15s;
-      }
-      .empleado-item:hover {
-        background: rgba(0,0,0,0.02);
-      }
-      .empleado-item:last-child { border-bottom: none; }
-
-      .empleado-nombre { 
-        font-weight: 600;
-        flex: 1;
-      }
-
-      .btn-del {
-        background: none;
-        border: 1px solid var(--border);
-        color: var(--text-muted);
-        border-radius: 8px;
-        padding: 6px 12px;
-        font-size: 13px;
-        cursor: pointer;
-        transition: all 0.2s;
-        white-space: nowrap;
-      }
-      .btn-del:hover {
-        background: #ffebee;
-        border-color: #ef9a9a;
-        color: #c62828;
-        transform: translateY(-1px);
-      }
-
-      /* Modal cámara mejorado */
-      #camara-modal {
-        align-items: center;
-        justify-content: center;
-        background: rgba(0,0,0,0.95);
-      }
-      #reg-video {
-        max-width: 720px;
-        max-height: calc(100vh - 200px);
-        border-radius: 12px 12px 0 0;
-      }
-      #reg-canvas { display: none; }
-
-      .camara-bar {
-        width: 100%;
-        max-width: 720px;
-        border-radius: 0 0 12px 12px;
-        padding: 18px 48px 28px;
-        background: rgba(0,0,0,0.98);
-        gap: 16px;
-      }
-
-      .dots {
-        gap: 12px;
-        justify-content: center;
-      }
-      .dot {
-        width: 14px;
-        height: 14px;
-      }
-      .dot-ok { background: #4caf50; }
-
-      #indicador { 
-        font-size: 14px;
-        color: rgba(255,255,255,0.85);
-      }
-
-      .camara-acciones {
-        gap: 24px;
-      }
-
-      .btn-capturar {
-        width: 76px;
-        height: 76px;
-        border: 5px solid transparent;
-        box-shadow: 0 0 0 4px rgba(255,255,255,0.9);
-        transition: all 0.2s;
-      }
-      .btn-capturar:hover:not(:disabled) {
-        box-shadow: 0 0 0 4px rgba(255,255,255,1);
-        transform: scale(1.05);
-      }
-      .btn-capturar:active:not(:disabled) { 
-        transform: scale(0.92);
-      }
-
-      .btn-cancelar-cam {
-        padding: 11px 24px;
-        font-size: 15px;
-        border-width: 2px;
-        transition: all 0.2s;
-      }
-      .btn-cancelar-cam:hover {
-        background: rgba(255,255,255,0.1);
-        border-color: rgba(255,255,255,0.6);
-      }
-    }
+    .btn-cancelar-cam svg { width: 13px; height: 13px; }
   </style>
-  <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body>
 
   <header>
-    <h1>Registrar Asociados</h1>
-    <a href="admin.html" class="btn btn-gris">← Volver al panel</a>
+    <div class="header-brand">
+      <div class="header-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+        </svg>
+      </div>
+      <div class="header-titles">
+        <h1>Registrar Asociados</h1>
+        <span>Reconocimiento facial · Viveros Unidos</span>
+      </div>
+    </div>
+    <a href="admin.html" class="btn-back">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/>
+      </svg>
+      Volver
+    </a>
   </header>
 
   <div class="contenido">
 
-    <!-- Agregar asociado -->
-    <div class="seccion">
-      <h2>Agregar / actualizar asociado</h2>
-      <div class="fila-input">
-        <div style="flex:1;min-width:200px">
-          <label>Nombre completo</label>
-          <input type="text" id="inp-nombre" placeholder="Ej: Juan Pérez" autocomplete="off">
+    <!-- ── Agregar asociado ──────────────────────────────── -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">
+          <div class="card-title-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+              <circle cx="9" cy="7" r="4"/>
+              <line x1="19" y1="8" x2="19" y2="14"/>
+              <line x1="22" y1="11" x2="16" y2="11"/>
+            </svg>
+          </div>
+          Agregar / actualizar asociado
         </div>
-        <div style="flex:1;min-width:180px">
-          <label>Obra asignada</label>
-          <select id="inp-obra" style="width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:6px;font-size:14px;background:var(--input-bg);color:var(--text)">
-            <option value="">Sin obra asignada</option>
-          </select>
-        </div>
-        <div style="flex:1;min-width:160px">
-          <label>Puesto / Cargo</label>
-          <input type="text" id="inp-puesto" placeholder="Ej: Albañil" autocomplete="off">
-        </div>
-        <div style="flex:1;min-width:160px">
-          <label>Empresa</label>
-          <select id="inp-contratista" style="width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:6px;font-size:14px;background:var(--input-bg);color:var(--text)">
-            <option value="">Sin Empresa</option>
-          </select>
-        </div>
-        <button class="btn btn-verde" onclick="abrirCamara()" style="align-self:flex-end">Registrar cara</button>
       </div>
-      <p id="estado"></p>
+      <div class="card-body">
+        <div class="form-grid">
+          <div class="form-field">
+            <label>Nombre completo</label>
+            <input type="text" id="inp-nombre" placeholder="Ej: Juan Pérez" autocomplete="off">
+          </div>
+          <div class="form-field">
+            <label>Puesto / Cargo</label>
+            <input type="text" id="inp-puesto" placeholder="Ej: Albañil" autocomplete="off">
+          </div>
+          <div class="form-field">
+            <label>Obra asignada</label>
+            <select id="inp-obra">
+              <option value="">Sin obra asignada</option>
+            </select>
+          </div>
+          <div class="form-field">
+            <label>Empresa</label>
+            <select id="inp-contratista">
+              <option value="">Sin empresa</option>
+            </select>
+          </div>
+        </div>
+
+        <button class="btn-registrar" onclick="abrirCamara()">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+            <circle cx="12" cy="13" r="4"/>
+          </svg>
+          Registrar cara
+        </button>
+        <p id="estado"></p>
+      </div>
     </div>
 
-    <!-- Lista asociados registrados -->
-    <div class="seccion">
-      <h2>Asociados con reconocimiento facial</h2>
-      <div id="lista-asociados">
-        <p style="color:#999;font-size:13px">Cargando...</p>
+    <!-- ── Lista asociados ───────────────────────────────── -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">
+          <div class="card-title-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+              <circle cx="9" cy="7" r="4"/>
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+              <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+            </svg>
+          </div>
+          Asociados registrados
+        </div>
+        <div class="list-meta">
+          <span class="badge-count" id="badge-count">—</span>
+        </div>
+      </div>
+      <div class="card-body">
+        <div id="lista-asociados">
+          <div class="empty-state">
+            <p>Cargando...</p>
+          </div>
+        </div>
       </div>
     </div>
 
   </div>
 
-  <!-- Modal cámara -->
+  <!-- ── Modal cámara ──────────────────────────────────────── -->
   <div id="camara-modal">
-    <video id="reg-video" autoplay playsinline muted></video>
-    <canvas id="reg-canvas"></canvas>
+    <div class="cam-wrap">
+      <video id="reg-video" autoplay playsinline muted></video>
+      <canvas id="reg-canvas"></canvas>
 
-    <div class="camara-bar">
-      <div class="dots">
-        <div class="dot" id="dot-0"></div>
-        <div class="dot" id="dot-1"></div>
-        <div class="dot" id="dot-2"></div>
+      <!-- Guía círculo cara -->
+      <div class="cam-face-guide">
+        <div class="cam-face-ring"></div>
       </div>
-      <p id="indicador">Mirá a la cámara y presioná el botón</p>
-      <div class="camara-acciones">
-        <button class="btn-cancelar-cam" onclick="cerrarCamara()">Cancelar</button>
-        <button class="btn-capturar" id="btn-capturar" onclick="capturarFoto()"></button>
+
+      <div class="camara-bar">
+
+        <!-- Progreso pasos: los IDs dot-0/1/2 son usados por el JS -->
+        <div class="cam-progress">
+          <div class="cam-step-wrap">
+            <div class="dot" id="dot-0">1</div>
+            <span class="cam-step-lbl">Foto 1</span>
+          </div>
+          <div class="cam-step-line"></div>
+          <div class="cam-step-wrap">
+            <div class="dot" id="dot-1">2</div>
+            <span class="cam-step-lbl">Foto 2</span>
+          </div>
+          <div class="cam-step-line"></div>
+          <div class="cam-step-wrap">
+            <div class="dot" id="dot-2">3</div>
+            <span class="cam-step-lbl">Foto 3</span>
+          </div>
+        </div>
+
+        <!-- Div .dots oculto — necesario para compatibilidad JS si hubiera referencias directas -->
+        <div class="dots" aria-hidden="true"></div>
+
+        <p id="indicador">Mirá a la cámara y presioná el botón</p>
+
+        <div class="camara-acciones">
+          <button class="btn-cancelar-cam" onclick="cerrarCamara()">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+              <path d="M18 6L6 18M6 6l12 12"/>
+            </svg>
+            Cancelar
+          </button>
+          <button class="btn-capturar" id="btn-capturar" onclick="capturarFoto()"></button>
+        </div>
+
       </div>
     </div>
   </div>
